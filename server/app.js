@@ -23,7 +23,7 @@ const server = http.createServer((req, res) => {
                 cont = "image/png";
                 break;
         }
-        console.log(cont);
+        console.log(url);
         if(cont) res.writeHead(200, {"Content-Type": cont});
         res.write(data);
         res.end();
