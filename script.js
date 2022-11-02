@@ -1,11 +1,21 @@
 const cnv = document.getElementById('cnv');
 const ctx = cnv.getContext('2d');
-let c1 = [0, 540];
-let c2 = [0, 300];
+let c1 = [60, 520];
+let c2 = [20, 540];
 let frame = 0;
+let backOff = [0, 2];
+const inRange = (num, range) => {
+    console.log(`Num: ${num} Res: ${range[0] <= num < range[1]}`)
+    return range[0] < num < range[1];
+}
 class Key {
-    static plans = []
-    constructor(range, motion, num) {
+    static frames = [0, 0];
+    constructor(range, motion, num, back, audio) {
+        if(back != undefined) {
+            backOff[0] += back[0];
+            backOff[1] += back[1];
+        }
+        this.audio = audio;
         this.range = range;
         this.cubeNum = num;
         this.done = false;
@@ -16,8 +26,8 @@ class Key {
         }
         this.motion = motion;
         let diff = range[1] - range[0];
+        Key.frames[num] += diff;
         this.interval = [(motion[0] - this.cube[0]) / diff, (motion[1] - this.cube[1]) / diff]
-        Key.plans.push(this)
     }
     run() {
         if(this.check()) {
@@ -26,75 +36,81 @@ class Key {
         }
     }
     check() {
-        const bool = this.range[0] < frame && frame <= this.range[1];
-        if(frame > this.range[1]) {
-            this.done = true;
+        const bool = [this.range[0] < frame, frame <= this.range[1]];
+        if(this.range[0] == frame) {
+            let diff = this.range[1] - this.range[0];
+            console.log(this.audio);
+            if(this.audio != undefined) {
+                new Audio(`line${this.audio}`).play();
+            }
+            this.interval = [(this.motion[0] - this.cube[0]) / diff, (this.motion[1] - this.cube[1]) / diff]
         }
-        return bool;
-    }
-    reschedule(range) {
-        console.log("Rescheduled");
-        console.log(this);
-        this.range = range;
-        let diff = range[1] - range[0]
-        this.interval = [(this.motion[0] - this.cube[0]) / diff,
-            (this.motion[1] - this.cube[1]) / diff]
+        return bool[0] && bool[1];
     }
 }
-function inRange(num, range) {
-    console.log(`Num: ${num} Res: ${range[0] <= num < range[1]}`)
-    return range[0] < num < range[1];
+const Cube = {
+    Red: 0,
+    Blue: 1
 }
-const g = (dur, wait, pos, cube) => {
+const g = (dur, wait, pos, cube, audio, back) => {
     let start = frame + wait;
     let end = start + dur;
-    for(plan of Key.plans) {
-        if(plan.cubeNum == cube) {
-            if(inRange(start, plan.range)) {
-                console.log("Start time is the same");
-                let range = plan.range;
-                plan.reschedule([range[0], start])
-                return null;
-            } else {
-                if(inRange(end, plan[1])) {
-                    console.log("Here");
-                    return null;
-                }
-            }
-        }
-    }
-    return new Key([start + wait, end + wait], pos, cube);
+    let frames = Key.frames[cube];
+    console.log(audio);
+    return new Key([start + wait + frames, end + wait + frames], pos, cube, back, audio);
 }
+ctx.font = "Comic Sans MS";
+ctx.textBaseline = "middle";
+let sound = 0;
+const audios = [
+
+]
+
 
 const keys = [
-    new Key([0, 120], [300, 300], 0),
-    g(60, 0, [25, 25], 0)
+    g(60, 0, [0, 0], Cube.Red, 0),
+    g(60, 0, [0, 0], Cube.Blue)
 ];
-let backOff = [0, 0]
-const background = 0;
+
+
+const Backgrounds = {
+    Tiles: 0,
+    Cliff: 1
+}
+const background = Backgrounds.Cliff;
+let run = false;
 const draw = () => {
+    run = true;
     for(key of keys) {
         if(key != null) {
             key.run();
         }
     }
+    console.log(c1);
     ctx.clearRect(0, 0, cnv.clientWidth, cnv.clientHeight);
+    ctx.fillStyle = "#404040";
+    ctx.fillRect(0, 0, cnv.clientWidth, cnv.clientHeight)
     switch(background) {
-        case 0:
+        case Backgrounds.Tiles:
             let ind = 0;
             for(let x = -100; x <= cnv.clientWidth + 100; x += 10) {
                 for(let y = -100; y <= cnv.clientHeight + 100; y += 10) {
-                    ctx.fillStyle = ind % 2 ? "grey" : "#aaa";
-                    ctx.fillRect(x, y, 10, 10);
+                    ctx.fillStyle = ind % 2 ? "	#808080" : "#aaa";
+                    ctx.fillRect(x + backOff[0] % 100, y + backOff[1] % 100, 10, 10);
                     ind++;
                 }
             }
             break;
+        case Backgrounds.Cliff:
+            ctx.fillStyle = "#783101";
+            ctx.fillRect(0, 400, 300, 200);
     }
     ctx.fillStyle = "#f00";
     ctx.fillRect(c1[0], c1[1], 40, 40);
     ctx.fillStyle = "#00f";
-    ctx.fillRect(c2[0], c2[1], 40, 40);
+    ctx.fillRect(c2[0], c2[1], 20, 20);
     frame++;
 }
-setInterval(draw, 1000/60);
+window.addEventListener("mousedown", () => {
+    if(!run) setInterval(draw, 1000 / 60)
+});

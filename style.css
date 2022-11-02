@@ -3,4 +3,5 @@ body {
     flex-flow: row nowrap;
     justify-content: center;
     background-color: grey;
+    align-items: center;
 }
