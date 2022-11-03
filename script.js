@@ -2,8 +2,8 @@ const cnv = document.getElementById('cnv');
 const ctx = cnv.getContext('2d');
 // Height: 400
 // Height of cube: 20
-let c1 = [60, 440];
-let c2 = [20, 420];
+let c1 = [60, 360];
+let c2 = [20, 380];
 let frame = 0;
 let backOff = [0, 2];
 const inRange = (num, range) => {
@@ -40,7 +40,6 @@ class Key {
         const bool = [this.range[0] < frame, frame <= this.range[1]];
         if(this.range[0] == frame) {
             let diff = this.range[1] - this.range[0];
-            console.log(this.audio);
             if(this.audio != undefined) {
                 new Audio(`audios/line${this.audio}.mp3`).play();
             }
@@ -53,21 +52,21 @@ const Cube = {
     Red: 0,
     Blue: 1
 }
+let aud = -1;
 const g = (dur, wait, pos, cube, audio, back) => {
     let start = frame + wait;
     let end = start + dur;
     let frames = Key.frames[cube];
-    return new Key([start + wait + frames, end + wait + frames], pos, cube, back, audio);
+    if(audio) aud++;
+    return new Key([start + wait + frames, end + wait + frames], pos, cube, back, audio ? aud : undefined);
 }
 ctx.font = "Comic Sans MS";
 ctx.textBaseline = "middle";
 let sound = 0;
-const audios = [
-
-]
 
 
 const keys = [
+    g(60, 30, [0, 0], 0)
 ];
 
 
