@@ -22,6 +22,9 @@ const server = http.createServer((req, res) => {
             case '.png':
                 cont = "image/png";
                 break;
+            case '.mp3':
+                cont = "audio/mpeg";
+                break;
         }
         console.log(url);
         if(cont) res.writeHead(200, {"Content-Type": cont});
