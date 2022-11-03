@@ -57,26 +57,22 @@ const g = (dur, wait, pos, cube, audio, back) => {
     let start = frame + wait;
     let end = start + dur;
     let frames = Key.frames[cube];
-    if(audio) aud++;
+    if(audio){
+        aud++;
+        console.log(aud);
+    }
     return new Key([start + wait + frames, end + wait + frames], pos, cube, back, audio ? aud : undefined);
 }
 ctx.font = "Comic Sans MS";
 ctx.textBaseline = "middle";
 let sound = 0;
-
-
-const keys = [
-    g(60, 30, [0, 0], 0)
-];
-
-
 const Backgrounds = {
     Tiles: 0,
     Cliff: 1
 }
 const background = Backgrounds.Cliff;
 let run = false;
-const draw = () => {
+const draw = (keys) => {
     run = true;
     for(key of keys) {
         if(key != null) {
@@ -107,6 +103,21 @@ const draw = () => {
     ctx.fillRect(c2[0], c2[1], 20, 20);
     frame++;
 }
+
+
+// Starts 
+// [60, 360] 0
+// [20, 380] 1
+const keys = [
+    g(4 * 60, 30, [60, 360], 0, true),
+    g(4 * 60, 120, [20, 380], 1, true),
+    g(30, 0, [400, 360], 0, false),
+    g(30, 0, [400, 360], 1, false),
+]
+
+
 window.addEventListener("mousedown", () => {
-    if(!run) setInterval(draw, 1000 / 60)
+    if(!run) setInterval(() => {
+        draw(keys);
+    }, 1000 / 60)
 });
